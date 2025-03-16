@@ -13,5 +13,4 @@ MonoBehaviour:
   m_Name: RedZone
   m_EditorClassIdentifier: 
   <color>k__BackingField: 1
-  <points>k__BackingField: 2
-  <handData>k__BackingField: {fileID: 11400000, guid: ac51395d09fd1564ba712b592c4b10f0, type: 2}
+  <points>k__BackingField: 1

@@ -13,5 +13,4 @@ MonoBehaviour:
   m_Name: YellowZone
   m_EditorClassIdentifier: 
   <color>k__BackingField: 0
-  <points>k__BackingField: 2
-  <handData>k__BackingField: {fileID: 11400000, guid: b0a3ef418d679664e8fbedfaad256a8e, type: 2}
+  <points>k__BackingField: 1

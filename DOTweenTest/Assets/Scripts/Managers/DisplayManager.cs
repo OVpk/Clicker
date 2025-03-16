@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,19 +8,25 @@ public class DisplayManager : MonoBehaviour
     [SerializeField] private TMP_Text scoreText;
 
     [Header("Hands to Display")]
-    [SerializeField] private HandController upLeft;
-    [SerializeField] private HandController downLeft;
-    [SerializeField] private HandController upRight;
-    [SerializeField] private HandController downRight;
+    [SerializeField] private HandDoTweenController upLeft;
+    [SerializeField] private HandDoTweenController downLeft;
+    [SerializeField] private HandDoTweenController upRight;
+    [SerializeField] private HandDoTweenController downRight;
 
     [Header("Colors to Display")]
-    [SerializeField] private ColorDisplayedController red;
-    [SerializeField] private ColorDisplayedController yellow;
-    [SerializeField] private ColorDisplayedController blue;
-    [SerializeField] private ColorDisplayedController green;
+    [SerializeField] private ColorDoTweenController red;
+    [SerializeField] private ColorDoTweenController yellow;
+    [SerializeField] private ColorDoTweenController blue;
+    [SerializeField] private ColorDoTweenController green;
+
+    [Header("Displayers for actived upgrades")]
+    [SerializeField] private SpriteRenderer[] redUpgrades;
+    [SerializeField] private SpriteRenderer[] yellowUpgrades;
+    [SerializeField] private SpriteRenderer[] blueUpgrades;
+    [SerializeField] private SpriteRenderer[] greenUpgrades;
 
     [Header("Shop")] 
-    
+    [SerializeField] private ShopDoTweenController shop;
     [SerializeField] private Image[] itemDisplayers;
     [SerializeField] private TMP_Text[] priceDisplayers;
 
@@ -42,6 +46,7 @@ public class DisplayManager : MonoBehaviour
     private void Start()
     {
         DisplayScore();
+        UpdateDisplayedShopItems();
     }
 
     public void DisplayScore()
@@ -51,7 +56,7 @@ public class DisplayManager : MonoBehaviour
 
     public void DisplayClickedColor(ColorZoneData.Colors clickedColor)
     {
-        ColorDisplayedController color = clickedColor switch
+        ColorDoTweenController color = clickedColor switch
         {
             ColorZoneData.Colors.Red => red,
             ColorZoneData.Colors.Blue => blue,
@@ -64,7 +69,7 @@ public class DisplayManager : MonoBehaviour
 
     public void DisplayHandAt(ColorZoneData.Colors wantedColor)
     {
-        HandController hand = wantedColor switch
+        HandDoTweenController hand = wantedColor switch
         {
             ColorZoneData.Colors.Red => downLeft,
             ColorZoneData.Colors.Blue => upRight,
@@ -74,16 +79,35 @@ public class DisplayManager : MonoBehaviour
         };
         hand.HandClick();
     }
+    
+    public void DisplayShop(bool state)
+    {
+        shop.OpenCloseShop(state);
+    }
 
     public void UpdateDisplayedShopItems()
     {
-        for (int i = 0; i < itemDisplayers.Length; i++)
+        for (int i = 0; i < GameManager.Instance.upgrades.Count && i < itemDisplayers.Length; i++)
         {
-            if (GameManager.Instance.upgrades[i] != null)
-            {
-                itemDisplayers[i].sprite = GameManager.Instance.upgrades[i].sprite;
-                priceDisplayers[i].text = GameManager.Instance.upgrades[i].price.ToString();
-            }
+            itemDisplayers[i].sprite = GameManager.Instance.upgrades[i].sprite;
+            priceDisplayers[i].text = GameManager.Instance.upgrades[i].price.ToString();
+        }
+    }
+
+    public void DisplayActivedUpgrade(UpgradeData upgrade)
+    {
+        SpriteRenderer[] zoneToDisplay = upgrade.colorZone.color switch
+        {
+            ColorZoneData.Colors.Red => redUpgrades,
+            ColorZoneData.Colors.Yellow => yellowUpgrades,
+            ColorZoneData.Colors.Blue => blueUpgrades,
+            ColorZoneData.Colors.Green => greenUpgrades,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+        for (int i = 0; i < zoneToDisplay.Length; i++)
+        {
+            if (zoneToDisplay[i].sprite == null) zoneToDisplay[i].sprite = upgrade.sprite;
+            break;
         }
     }
 }

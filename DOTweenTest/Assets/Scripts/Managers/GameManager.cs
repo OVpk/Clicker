@@ -3,25 +3,28 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
+public class GameManager : MonoBehaviour, IShop
 {
+    [Header("Color Zones Data")]
     [SerializeField] private ColorZoneData[] colors;
     public ColorZoneDataInstance yellowZone { get; private set; }
     public ColorZoneDataInstance redZone { get; private set; }
     public ColorZoneDataInstance blueZone { get; private set; }
     public ColorZoneDataInstance greenZone { get; private set; }
     
+    [Header("Upgrades Available in shop")]
+    [SerializeField] public List<UpgradeData> upgrades;
+    
     public enum GameState
     {
         Game,
-        Shop,
-        Menu
+        Shop
     }
     public GameState currentState { get; private set; }
     
     public int score { get; private set; }
 
-    [SerializeField] public List<UpgradeData> upgrades;
+    private bool isAutoClickActive = true;
     
     public static GameManager Instance;
     private void Awake()
@@ -36,7 +39,16 @@ public class GameManager : MonoBehaviour
         }
         
         InitGame();
+        InitShop();
     }
+    
+    public void ChangeState(GameState newState)
+    {
+        if (newState == currentState) return;
+        currentState = newState;
+    }
+
+    #region Game
 
     private void InitGame()
     {
@@ -51,50 +63,60 @@ public class GameManager : MonoBehaviour
             }
         }
     }
-
-    private void Start()
-    {
-    }
     
-
-    private void AddScore(int scoreToAdd)
-    {
-        score += scoreToAdd;
-    }
-
     public void ColorClick(ColorZoneDataInstance clickedColor)
     {
         DisplayManager.Instance.DisplayClickedColor(clickedColor.color);
         AddScore(clickedColor.points);
-        DisplayManager.Instance.DisplayScore();
     }
 
     private IEnumerator HandAutoClicker(ColorZoneDataInstance colorToClick)
     {
-        while (currentState == GameState.Game)
+        while (isAutoClickActive)
         {
             DisplayManager.Instance.DisplayHandAt(colorToClick.color);
             yield return new WaitForSeconds(0.25f);
             ColorClick(colorToClick);
-
+        
             yield return new WaitForSeconds(colorToClick.handInstance.delay);
         }
     }
-
-    private void RemoveItemToShop(UpgradeData upgrade)
+    
+    private void AddScore(int scoreToAdd)
     {
-        upgrades.Remove(upgrade);
-        DisplayManager.Instance.UpdateDisplayedShopItems();
+        score += scoreToAdd;
+        DisplayManager.Instance.DisplayScore();
+    }
+
+    #endregion
+    
+    #region Shop
+
+    public void InitShop()
+    {
+        upgrades.Sort((a, b) => a.price.CompareTo(b.price));
     }
 
     public void BuyUpgrade(UpgradeData upgrade)
     {
+        if (score < upgrade.price) return;
         AddScore(- upgrade.price);
         RemoveItemToShop(upgrade);
         ApplyUpgrade(upgrade);
     }
 
-    private void ApplyUpgrade(UpgradeData upgrade)
+    public void RemoveItemToShop(UpgradeData upgrade)
+    {
+        upgrades.Remove(upgrade);
+        DisplayManager.Instance.UpdateDisplayedShopItems();
+    }
+    
+    private void StartNewHandAt(ColorZoneDataInstance colorZone)
+    {
+        StartCoroutine(HandAutoClicker(colorZone));
+    }
+
+    public void ApplyUpgrade(UpgradeData upgrade)
     {
         ColorZoneDataInstance zoneToUpgrade = upgrade.colorZone.color switch
         {
@@ -118,16 +140,14 @@ public class GameManager : MonoBehaviour
 
             case ColorUpgradeData colorUpgrade:
                 zoneToUpgrade.points += colorUpgrade.pointsToAdd;
+                DisplayManager.Instance.DisplayActivedUpgrade(upgrade);
                 break;
 
             default:
                 throw new ArgumentException("Unsupported upgrade type", nameof(upgrade));
         }
     }
-    
-    private void StartNewHandAt(ColorZoneDataInstance colorZone)
-    {
-        StartCoroutine(HandAutoClicker(colorZone));
-    }
+
+    #endregion
 
 }

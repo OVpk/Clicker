@@ -1,9 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 
-public class ColorDisplayedController : MonoBehaviour
+public class ColorDoTweenController : MonoBehaviour
 {
     private SpriteRenderer spriteRenderer;
 

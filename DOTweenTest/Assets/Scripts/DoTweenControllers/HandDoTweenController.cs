@@ -1,7 +1,7 @@
 using DG.Tweening;
 using UnityEngine;
 
-public class HandController : MonoBehaviour
+public class HandDoTweenController : MonoBehaviour
 {
     [SerializeField] private Vector3 retractedScale;
     [SerializeField] private Vector3 retractedPosition;

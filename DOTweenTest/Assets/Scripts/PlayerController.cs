@@ -1,8 +1,8 @@
 using UnityEngine;
 
-public class ClickDetector : MonoBehaviour
+public class PlayerController : MonoBehaviour
 {
-    void Update()
+    private void Update()
     {
         if (Input.GetMouseButtonDown(0) && GameManager.Instance.currentState == GameManager.GameState.Game)
         {
@@ -10,7 +10,7 @@ public class ClickDetector : MonoBehaviour
         }
     }
 
-    void DetectZone()
+    private void DetectZone()
     {
         if (GameManager.Instance.currentState != GameManager.GameState.Game) return;
         
@@ -35,6 +35,15 @@ public class ClickDetector : MonoBehaviour
         {
             GameManager.Instance.ColorClick(GameManager.Instance.blueZone);
         }
+    }
+
+    public void ShopButtonClick()
+    {
+        GameManager.GameState newState = GameManager.Instance.currentState == GameManager.GameState.Shop
+            ? GameManager.GameState.Game
+            : GameManager.GameState.Shop;
+        GameManager.Instance.ChangeState(newState);
+        DisplayManager.Instance.DisplayShop(GameManager.Instance.currentState == GameManager.GameState.Shop);
     }
 
     public void ItemButtonClick(int index)
