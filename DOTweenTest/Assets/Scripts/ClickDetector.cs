@@ -12,6 +12,8 @@ public class ClickDetector : MonoBehaviour
 
     void DetectZone()
     {
+        if (GameManager.Instance.currentState != GameManager.GameState.Game) return;
+        
         float screenWidth = Screen.width;
         float screenHeight = Screen.height;
 
@@ -19,19 +21,27 @@ public class ClickDetector : MonoBehaviour
 
         if (mousePosition.x < screenWidth / 2 && mousePosition.y < screenHeight / 2)
         {
-            GameManager.Instance.ColorClick(GameManager.Colors.Red);
+            GameManager.Instance.ColorClick(GameManager.Instance.redZone);
         }
         else if (mousePosition.x >= screenWidth / 2 && mousePosition.y < screenHeight / 2)
         {
-            GameManager.Instance.ColorClick(GameManager.Colors.Green);
+            GameManager.Instance.ColorClick(GameManager.Instance.greenZone);
         }
         else if (mousePosition.x < screenWidth / 2 && mousePosition.y >= screenHeight / 2)
         {
-            GameManager.Instance.ColorClick(GameManager.Colors.Yellow);
+            GameManager.Instance.ColorClick(GameManager.Instance.yellowZone);
         }
         else if (mousePosition.x >= screenWidth / 2 && mousePosition.y >= screenHeight / 2)
         {
-            GameManager.Instance.ColorClick(GameManager.Colors.Blue);
+            GameManager.Instance.ColorClick(GameManager.Instance.blueZone);
+        }
+    }
+
+    public void ItemButtonClick(int index)
+    {
+        if (GameManager.Instance.upgrades[index] != null)
+        {
+            GameManager.Instance.BuyUpgrade(GameManager.Instance.upgrades[index]);
         }
     }
 }

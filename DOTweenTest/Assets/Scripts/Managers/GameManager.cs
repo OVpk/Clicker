@@ -1,14 +1,15 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    [SerializeField] private HandData[] hands;
-    private HandDataInstance yellowHand;
-    private HandDataInstance redHand;
-    private HandDataInstance blueHand;
-    private HandDataInstance greenHand;
+    [SerializeField] private ColorZoneData[] colors;
+    public ColorZoneDataInstance yellowZone { get; private set; }
+    public ColorZoneDataInstance redZone { get; private set; }
+    public ColorZoneDataInstance blueZone { get; private set; }
+    public ColorZoneDataInstance greenZone { get; private set; }
     
     public enum GameState
     {
@@ -18,15 +19,9 @@ public class GameManager : MonoBehaviour
     }
     public GameState currentState { get; private set; }
     
-    public enum Colors
-    {
-        Yellow,
-        Red,
-        Green,
-        Blue
-    }
-    
     public int score { get; private set; }
+
+    [SerializeField] public List<UpgradeData> upgrades;
     
     public static GameManager Instance;
     private void Awake()
@@ -39,15 +34,20 @@ public class GameManager : MonoBehaviour
         {
             Destroy(this);
         }
+        
+        InitGame();
+    }
 
-        foreach (var hand in hands)
+    private void InitGame()
+    {
+        foreach (var color in colors)
         {
-            switch (hand.color)
+            switch (color.color)
             {
-                case Colors.Red : redHand = hand.Instance();break;
-                case Colors.Green : greenHand = hand.Instance();break;
-                case Colors.Blue : blueHand = hand.Instance();break;
-                case Colors.Yellow : yellowHand = hand.Instance();break;
+                case ColorZoneData.Colors.Red : redZone = color.Instance(); break;
+                case ColorZoneData.Colors.Green : greenZone = color.Instance(); break;
+                case ColorZoneData.Colors.Blue : blueZone = color.Instance(); break;
+                case ColorZoneData.Colors.Yellow : yellowZone = color.Instance(); break;
             }
         }
     }
@@ -55,47 +55,79 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
     }
+    
 
     private void AddScore(int scoreToAdd)
     {
         score += scoreToAdd;
     }
 
-    public void ColorClick(Colors clickedColor)
+    public void ColorClick(ColorZoneDataInstance clickedColor)
     {
-        DisplayManager.Instance.DisplayClickedColor(clickedColor);
-        AddScore(1);
+        DisplayManager.Instance.DisplayClickedColor(clickedColor.color);
+        AddScore(clickedColor.points);
         DisplayManager.Instance.DisplayScore();
     }
 
-    private IEnumerator HandAutoClicker(HandDataInstance hand)
+    private IEnumerator HandAutoClicker(ColorZoneDataInstance colorToClick)
     {
         while (currentState == GameState.Game)
         {
-            DisplayManager.Instance.DisplayHandAt(hand.color);
+            DisplayManager.Instance.DisplayHandAt(colorToClick.color);
             yield return new WaitForSeconds(0.25f);
-            ColorClick(hand.color);
+            ColorClick(colorToClick);
 
-            yield return new WaitForSeconds(hand.delay);
+            yield return new WaitForSeconds(colorToClick.handInstance.delay);
         }
     }
 
-    private void ApplyHandUpgrade(HandUpgradeData handUpgrade)
+    private void RemoveItemToShop(UpgradeData upgrade)
     {
-        HandDataInstance handToUpgrade = handUpgrade.hand.color switch
-        {
-            Colors.Yellow => yellowHand,
-            Colors.Red => redHand,
-            Colors.Blue => blueHand,
-            Colors.Green => greenHand,
-            _ => throw new ArgumentOutOfRangeException()
-        };
-        handToUpgrade.delay = handUpgrade.newDelay;
+        upgrades.Remove(upgrade);
+        DisplayManager.Instance.UpdateDisplayedShopItems();
     }
 
-    private void StartNewHand(HandDataInstance hand)
+    public void BuyUpgrade(UpgradeData upgrade)
     {
-        StartCoroutine(HandAutoClicker(hand));
+        AddScore(- upgrade.price);
+        RemoveItemToShop(upgrade);
+        ApplyUpgrade(upgrade);
+    }
+
+    private void ApplyUpgrade(UpgradeData upgrade)
+    {
+        ColorZoneDataInstance zoneToUpgrade = upgrade.colorZone.color switch
+        {
+            ColorZoneData.Colors.Yellow => yellowZone,
+            ColorZoneData.Colors.Red => redZone,
+            ColorZoneData.Colors.Blue => blueZone,
+            ColorZoneData.Colors.Green => greenZone,
+            _ => throw new ArgumentOutOfRangeException(nameof(upgrade.colorZone), "ColorZoneData does not match any known zone.")
+        };
+
+        switch (upgrade)
+        {
+            case HandUpgradeData handUpgrade:
+                if (zoneToUpgrade.handInstance == null)
+                {
+                    zoneToUpgrade.handInstance = handUpgrade.Instance();
+                    StartNewHandAt(zoneToUpgrade);
+                }
+                zoneToUpgrade.handInstance.delay = handUpgrade.newDelay;
+                break;
+
+            case ColorUpgradeData colorUpgrade:
+                zoneToUpgrade.points += colorUpgrade.pointsToAdd;
+                break;
+
+            default:
+                throw new ArgumentException("Unsupported upgrade type", nameof(upgrade));
+        }
+    }
+    
+    private void StartNewHandAt(ColorZoneDataInstance colorZone)
+    {
+        StartCoroutine(HandAutoClicker(colorZone));
     }
 
 }

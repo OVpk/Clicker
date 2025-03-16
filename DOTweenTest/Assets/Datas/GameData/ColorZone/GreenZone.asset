@@ -9,9 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ed1f472976139514aa6be377f2299c26, type: 3}
-  m_Name: GreenHand
+  m_Script: {fileID: 11500000, guid: a3ba913b74d234840996fd194513c1b7, type: 3}
+  m_Name: GreenZone
   m_EditorClassIdentifier: 
   <color>k__BackingField: 2
-  <delay>k__BackingField: 5
-  <controller>k__BackingField: {fileID: 0}
+  <points>k__BackingField: 2
+  <handData>k__BackingField: {fileID: 11400000, guid: 5abb2e24611f6644080f9fedcf02b811, type: 2}
